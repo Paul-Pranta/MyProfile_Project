@@ -1,0 +1,35 @@
+
+
+const jwt = require('jsonwebtoken');
+const User = require('../db/model/userSchema');
+
+const SECRET_KEY = "MYNAMEISPRANTAKUMARPAUL"
+
+const authenticate = async (req, res, next) => { 
+    
+    console.log("hwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
+    try {
+
+        const token = req.cookies.jwtoken;
+        console.log("Request headers:", req.cookies);
+        const verifyToken = jwt.verify(token, SECRET_KEY); // now this verify token gets the details of user
+
+        const rootUser = await User.findOne({ _id: verifyToken._id, "tokens.token": token });
+        
+        if (!rootUser) { throw new Error('User not Found') }
+          
+        req.token = token;
+        req.rootUser = rootUser;
+        req.userID = rootUser._id;
+        
+        next();
+
+    } catch (err) { 
+        res.status(401).send('Unauthorized: No token provided ');
+
+        console.log(err);
+    }
+
+}
+
+module.exports = authenticate;
